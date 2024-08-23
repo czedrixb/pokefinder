@@ -4,12 +4,15 @@
       pokéfinder
     </h1>
 
-    <div class="bg-white border flex items-center rounded-full shadow mb-20">
+    <div
+      class="bg-white border flex items-center rounded-full shadow mb-20"
+      :class="searchFocus"
+    >
       <input
         type="text"
-        v-model="searchTerm"
+        v-model="search"
         placeholder="Search Pokémon..."
-        class="w-full py-2 px-4 text-gray-700 focus:outline-none"
+        class="w-full py-2 px-4 text-gray-700 bg-transparent focus:outline-none"
       />
       <div class="p-2">
         <button
@@ -24,9 +27,16 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div v-if="preload" class="flex justify-center items-center">
+      <img
+        src="https://i.imgur.com/K6vsFTX.gif"
+        class="pokeball w-20"
+        alt="pokeball"
+      />
+    </div>
+
+    <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
       <button
-        @click="modal = true"
         v-for="pokemon in filteredPokemons"
         :key="pokemon.name"
         class="border border-2 text-left rounded-lg hover:border-grass focus:border-grass transition-colors ease-in-out p-4 bg-white h-full w-full"
@@ -74,8 +84,9 @@ export default {
   data() {
     return {
       modal: false,
+      preload: true,
       pokemons: [],
-      searchTerm: "",
+      search: "",
     };
   },
 
@@ -85,12 +96,15 @@ export default {
 
   computed: {
     filteredPokemons() {
-      const term = this.searchTerm.toLowerCase();
+      const term = this.search.toLowerCase();
       return this.pokemons.filter(
         (pokemon) =>
           pokemon.name.toLowerCase().includes(term) ||
           pokemon.id.toString().includes(term)
       );
+    },
+    searchFocus() {
+      return this.search ? `border-grass shadow-md` : `border-gray-300`;
     },
   },
 
@@ -115,6 +129,8 @@ export default {
             type2: pokemonData.types[1] ? pokemonData.types[1].type.name : null,
           };
         });
+
+        this.preload = false;
       } catch (error) {
         console.error("Error fetching Pokémon:", error);
       }
