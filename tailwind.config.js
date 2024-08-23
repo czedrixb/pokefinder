@@ -10,6 +10,15 @@ export default {
   ],
   theme: {
     extend: {
+      animation: {
+        'rotate': 'rotate 2s linear infinite',
+      },
+      keyframes: {
+        rotate: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+      },
       colors: {
         primary: '#f4f9f4',
         secondary: '#849c9c',
@@ -34,6 +43,25 @@ export default {
       },
     },
   },
+  safelist: [
+    'bg-normal',
+    'bg-fire',
+    'bg-water',
+    'bg-electric',
+    'bg-grass',
+    'bg-ice',
+    'bg-fighting',
+    'bg-poison',
+    'bg-ground',
+    'bg-flying',
+    'bg-psychic',
+    'bg-bug',
+    'bg-rock',
+    'bg-ghost',
+    'bg-dragon',
+    'bg-dark',
+    'bg-steel',
+    'bg-fairy',
+  ],
   plugins: [],
 }
-
