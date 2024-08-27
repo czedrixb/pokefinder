@@ -72,73 +72,74 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 import Pokemon from "@/components/pokemon.vue";
 
-export default {
-  components: {
-    Pokemon,
-  },
+// mega
+useSeoMeta({
+  title: "Pokéfinder - Home",
+  ogTitle: "Pokéfinder - Home",
+  description: "This is like a pokédex for pokemons.",
+  ogDescription: "This is like a pokédex for pokemons.",
+});
 
-  data() {
-    return {
-      modal: false,
-      preload: true,
-      pokemons: [],
-      search: "",
-    };
-  },
+// Reactive state
+const modal = ref(false);
+const preload = ref(true);
+const pokemons = ref([]);
+const search = ref("");
 
-  mounted() {
-    this.getPokemon();
-  },
+// Fetch Pokémon data
+const getPokemon = async () => {
+  try {
+    const response = await axios.get("https://pokeapi.co/api/v2/pokemon/");
+    const pokemonList = response.data.results;
 
-  computed: {
-    filteredPokemons() {
-      const term = this.search.toLowerCase();
-      return this.pokemons.filter(
-        (pokemon) =>
-          pokemon.name.toLowerCase().includes(term) ||
-          pokemon.id.toString().includes(term)
-      );
-    },
-    searchFocus() {
-      return this.search ? `border-grass shadow-md` : `border-gray-300`;
-    },
-  },
+    const detailedPokemonRequests = pokemonList.map((pokemon) =>
+      axios.get(pokemon.url)
+    );
+    const detailedPokemons = await Promise.all(detailedPokemonRequests);
 
-  methods: {
-    async getPokemon() {
-      try {
-        const response = await axios.get("https://pokeapi.co/api/v2/pokemon/");
-        const pokemonList = response.data.results;
+    pokemons.value = detailedPokemons.map((pokemonResponse) => {
+      const pokemonData = pokemonResponse.data;
+      return {
+        id: pokemonData.id,
+        name: pokemonData.name,
+        image: pokemonData.sprites.front_default,
+        type1: pokemonData.types[0].type.name,
+        type2: pokemonData.types[1] ? pokemonData.types[1].type.name : null,
+      };
+    });
 
-        const detailedPokemonRequests = pokemonList.map((pokemon) =>
-          axios.get(pokemon.url)
-        );
-        const detailedPokemons = await Promise.all(detailedPokemonRequests);
+    preload.value = false;
+  } catch (error) {
+    console.error("Error fetching Pokémon:", error);
+  }
+};
 
-        this.pokemons = detailedPokemons.map((pokemonResponse) => {
-          const pokemonData = pokemonResponse.data;
-          return {
-            id: pokemonData.id,
-            name: pokemonData.name,
-            image: pokemonData.sprites.front_default,
-            type1: pokemonData.types[0].type.name,
-            type2: pokemonData.types[1] ? pokemonData.types[1].type.name : null,
-          };
-        });
+// Computed properties
+const filteredPokemons = computed(() => {
+  const term = search.value.toLowerCase();
+  return pokemons.value.filter(
+    (pokemon) =>
+      pokemon.name.toLowerCase().includes(term) ||
+      pokemon.id.toString().includes(term)
+  );
+});
 
-        this.preload = false;
-      } catch (error) {
-        console.error("Error fetching Pokémon:", error);
-      }
-    },
+const searchFocus = computed(() => {
+  return search.value ? `border-grass shadow-md` : `border-gray-300`;
+});
 
-    getType(type) {
-      return `bg-${type}`;
-    },
-  },
+// Lifecycle hooks
+onMounted(() => {
+  getPokemon();
+});
+
+// Methods
+const getType = (type) => {
+  return `bg-${type}`;
 };
 </script>
